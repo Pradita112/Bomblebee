@@ -1,27 +1,16 @@
 package minesweeper;
 
 
-
 public class Cell 
 {
     private boolean mine;
 
-    /*
-     * The content of a field can be a...
-     *  "" - indicating an unknown field
-     *  "F" - a flagged field
-     *  "M" - a mine
-     *  a number ranging from 0 to 8 - indicating the number of surrounding mines
-     */
-
-    //Only the content of the Cell is visible to the player.
+  
     private String content;
 
-    //Number of adjacent surrounding mines
     private int surroundingMines;
 
     
-    //----------------------------------------------------------//
 
     public Cell()
     {
@@ -30,9 +19,6 @@ public class Cell
         surroundingMines = 0;
     }
 
-
-    
-    //-------------GETTERS AND SETTERS----------------------------//
     public boolean getMine()
     {
         return mine;
@@ -63,5 +49,4 @@ public class Cell
         this.surroundingMines = surroundingMines;
     }
 
-    //-------------------------------------------------------------//
 }
