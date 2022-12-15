@@ -109,4 +109,172 @@ public class Board{
             }
         }
     }
+     public boolean checkSave()
+    {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        
+        boolean saveExists = false;
+
+        try {
+            String dbURL = Game.dbPath; 
+            
+            connection = DriverManager.getConnection(dbURL); 
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery("SELECT * FROM GAME_STATE");
+            
+            while(resultSet.next()) 
+            {
+                saveExists = true;
+            }
+            
+            resultSet.close();
+            statement.close();
+                       
+            
+            connection.close();            
+            
+            return saveExists;
+        }
+        catch(SQLException sqlex)
+        {
+            sqlex.printStackTrace();
+            return false;
+        }        
+    }
+     public Pair loadSaveGame()
+    {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+
+        try {
+            String dbURL = Game.dbPath; 
+            
+            connection = DriverManager.getConnection(dbURL); 
+            
+         
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery("SELECT * FROM CELL");
+
+            for(int x = 0 ; x < cols ; x++) 
+            {
+                for(int y = 0 ; y < rows ; y++) 
+                {                                        
+                    resultSet.next();
+                    
+                    cells[x][y].setContent(resultSet.getString("CONTENT"));
+                    cells[x][y].setMine(resultSet.getBoolean("MINE"));
+                    cells[x][y].setSurroundingMines(resultSet.getInt("SURROUNDING_MINES"));                    
+                }
+            }
+            
+            statement.close();
+            resultSet.close();
+       
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery("SELECT * FROM GAME_STATE");
+
+            resultSet.next();
+                        
+            Pair p = new Pair(resultSet.getInt("TIMER"),resultSet.getInt("MINES"));
+           
+            deleteSavedGame();
+          
+            resultSet.close();
+            statement.close();
+          
+            connection.close();
+
+            return p;
+        }
+        catch(SQLException sqlex)
+        {
+            sqlex.printStackTrace();
+            return null;
+        }                
+    }
+     public void deleteSavedGame()
+    {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        
+        try {
+            String dbURL = Game.dbPath; 
+            
+            connection = DriverManager.getConnection(dbURL); 
+
+            
+   
+            String template = "DELETE FROM GAME_STATE"; 
+            statement = connection.prepareStatement(template);
+            statement.executeUpdate();
+            
+        
+            template = "DELETE FROM CELL"; 
+            statement = connection.prepareStatement(template);
+            statement.executeUpdate();
+            
+            statement.close();
+    
+            connection.close();            
+        }
+        catch(SQLException sqlex)
+        {
+            sqlex.printStackTrace();
+        }                
+    }
+    
+           
+
+    public void saveGame(int timer, int mines)
+    {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        
+        try {
+            String dbURL = Game.dbPath; 
+            
+            connection = DriverManager.getConnection(dbURL); 
+
+            
+            String template = "INSERT INTO CELL (CONTENT, MINE, SURROUNDING_MINES) values (?,?,?)";
+            statement = connection.prepareStatement(template);
+
+            for(int x = 0 ; x < cols ; x++) 
+            {
+                for(int y = 0 ; y < rows ; y++) 
+                {
+                    statement.setString(1, cells[x][y].getContent());
+                    statement.setBoolean(2, cells[x][y].getMine());
+                    statement.setInt(3, (int)cells[x][y].getSurroundingMines());                    
+
+                    statement.executeUpdate();
+                }
+            }
+          
+            template = "INSERT INTO GAME_STATE (TIMER,MINES) values (?,?)";
+            statement = connection.prepareStatement(template);
+            
+            statement.setInt(1, timer);
+            statement.setInt(2, mines);
+
+            statement.executeUpdate();
+            
+    
+            
+            statement.close();
+          
+            connection.close();            
+        }
+        catch(SQLException sqlex)
+        {
+            sqlex.printStackTrace();
+        }
+        
+    }
+    
+    
+    
 }
