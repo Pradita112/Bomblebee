@@ -163,4 +163,125 @@ public class Score{
             return time;
         }        
     }    
+    public boolean populate()
+    {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+
+        try {
+            String dbURL = Game.dbPath; 
+
+            connection = DriverManager.getConnection(dbURL); 
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery("SELECT * FROM SCORE");
+
+            while(resultSet.next()) 
+            {
+                gamesPlayed = resultSet.getInt("GAMES_PLAYED");
+                gamesWon = resultSet.getInt("GAMES_WON");
+
+                longestWinningStreak = resultSet.getInt("LWSTREAK");
+                longestLosingStreak = resultSet.getInt("LLSTREAK");
+
+                currentStreak = resultSet.getInt("CSTREAK");
+
+                currentWinningStreak = resultSet.getInt("CWSTREAK");
+                currentLosingStreak = resultSet.getInt("CLSTREAK");                                
+            }
+            
+            resultSet.close();
+            statement.close();
+
+            
+            
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery("SELECT * FROM TIME");
+            
+            
+            while(resultSet.next())
+            {
+                int time = resultSet.getInt("TIME_VALUE");
+                Date date = resultSet.getDate("DATE_VALUE");
+                
+                bestTimes.add(new Time(time,date));
+            }
+            
+            resultSet.close();
+            statement.close();
+            
+            
+            connection.close();            
+            
+            return true;
+        }
+        catch(SQLException sqlex)
+        {
+            sqlex.printStackTrace();
+            return false;
+        }
+    }
+    public void save()
+    {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        
+
+        try {
+            String dbURL = Game.dbPath; 
+            
+            connection = DriverManager.getConnection(dbURL); 
+
+            
+      
+            String template = "DELETE FROM SCORE"; 
+            statement = connection.prepareStatement(template);
+            statement.executeUpdate();
+            
+        
+            template = "DELETE FROM TIME"; 
+            statement = connection.prepareStatement(template);
+            statement.executeUpdate();
+            
+                 
+            template = "INSERT INTO SCORE (GAMES_PLAYED,GAMES_WON, LWSTREAK, LLSTREAK, CSTREAK, CWSTREAK, CLSTREAK) values (?,?,?,?,?,?,?)";
+            statement = connection.prepareStatement(template);
+            
+            statement.setInt(1, gamesPlayed);
+            statement.setInt(2, gamesWon);
+            statement.setInt(3, longestWinningStreak);
+            statement.setInt(4, longestLosingStreak);
+            statement.setInt(5, currentStreak);
+            statement.setInt(6, currentWinningStreak);
+            statement.setInt(7, currentLosingStreak);
+            
+            statement.executeUpdate();
+            
+          
+            template = "INSERT INTO TIME (TIME_VALUE, DATE_VALUE) values (?,?)";
+            statement = connection.prepareStatement(template);
+            
+
+            for (int i = 0; i < bestTimes.size(); i++)
+            {
+                statement.setInt(1, bestTimes.get(i).getTimeValue());
+                statement.setDate(2, bestTimes.get(i).getDateValue());
+                
+                statement.executeUpdate();            
+            }
+
+           
+            
+            statement.close();
+            
+        
+            connection.close();            
+        }
+        catch(SQLException sqlex)
+        {
+            sqlex.printStackTrace();
+        }
+        
+    }
+
 }
